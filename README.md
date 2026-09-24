@@ -164,13 +164,16 @@ submodule (`lib/sampalx`) — clone with `--recursive`, or run
 `git submodule update --init --recursive` before building.
 
 ```bash
-make web        # builds libmlx_web.a and web/minirt.html
-make web-run    # serves the page (PORT=8080 by default)
+make web        # mandatory build -> libmlx_web.a + web/minirt.html
+make web-bonus  # bonus build     -> web/minirt_bonus.html (quadrics, textures)
+make web-run    # serves web/ (PORT=8080 by default)
 ```
 
 Open `http://localhost:8080/minirt.html` and pick a scene from the dropdown —
-`?scene=/scenes/mandatory/multi_obj.rt` also works. The frame is rendered
-synchronously, so the page stays busy for a moment before the image appears.
+`?scene=/scenes/mandatory/multi_obj.rt` also works. The bonus page
+(`minirt_bonus.html`) also lists the `scenes/bonus/` scenes and defaults to
+`all_objects.rt`. The frame is rendered synchronously, so the page stays busy
+for a moment before the image appears.
 
 ![miniRT running in the browser](docs/screenshots/web-version.png)
 

@@ -160,8 +160,38 @@ $(WEB_OUT): $(WEB_OBJS) $(WEB_FT_OBJS) $(WEB_LIB) $(WEB_SHELL) $(WEB_PREJS)
 		$(WEB_PRELOAD) --shell-file $(WEB_SHELL) --pre-js $(WEB_PREJS) \
 		-L$(SLX_DIR) -lmlx_web -o $(WEB_OUT)
 
+# --- Web bonus build (same pipeline, bonus sources + bonus scenes) ---
+WEB_NAME_BONUS := minirt_bonus
+WEB_OUT_BONUS := $(WEB_DIR)/$(WEB_NAME_BONUS).html
+WEB_PREJS_BONUS := $(WEB_DIR)/pre-bonus.js
+WEB_INCLUDES_BONUS := -Iinc_bonus -Ilib/libft/inc -I$(SLX_DIR)/includes
+# Scenes are preloaded whole; of the textures only the small one is bundled
+# (texture/bump_map.xpm is 32 MB and would bloat the wasm data file).
+WEB_PRELOAD_BONUS := --preload-file scenes@/scenes \
+	--preload-file texture/moonbump1k.xpm@/texture/moonbump1k.xpm
+
+WEB_SRC_BONUS := $(SRC_BONUS)
+WEB_OBJS_BONUS := $(WEB_SRC_BONUS:$(SRC_BONUS_DIR)/%.c=$(WEB_OBJ_DIR)/bonus/%.o)
+
+web-bonus: $(WEB_OUT_BONUS)
+	@echo "[web-bonus] built $(WEB_OUT_BONUS) — serve it with: make web-run"
+
+$(WEB_OBJ_DIR)/bonus/%.o: $(SRC_BONUS_DIR)/%.c
+	$(DUP_DIR)
+	$(WEB_EMCC) $(WEB_CFLAGS) $(WEB_INCLUDES_BONUS) -c $< -o $@
+
+$(WEB_OBJS_BONUS): $(WEB_LIB)
+
+$(WEB_OUT_BONUS): $(WEB_OBJS_BONUS) $(WEB_FT_OBJS) $(WEB_LIB) $(WEB_SHELL) \
+		$(WEB_PREJS) $(WEB_PREJS_BONUS)
+	$(WEB_EMCC) $(WEB_OBJS_BONUS) $(WEB_FT_OBJS) $(WEB_CFLAGS) $(WEB_LDFLAGS) \
+		$(WEB_PRELOAD_BONUS) --shell-file $(WEB_SHELL) \
+		--pre-js $(WEB_PREJS) --pre-js $(WEB_PREJS_BONUS) \
+		-L$(SLX_DIR) -lmlx_web -o $(WEB_OUT_BONUS)
+
 web-run: web
-	@echo "[web] serving web/ at http://localhost:$(PORT)/$(WEB_NAME).html"
+	@echo "[web] serving $(WEB_DIR)/ — open http://localhost:$(PORT)/$(WEB_NAME).html"
+	@echo "      bonus build: http://localhost:$(PORT)/$(WEB_NAME_BONUS).html"
 	@python3 -m http.server $(PORT) --directory $(WEB_DIR)
 
 webclean:
@@ -169,6 +199,8 @@ webclean:
 	$(RM) $(WEB_DIR)/$(WEB_NAME).html $(WEB_DIR)/$(WEB_NAME).js \
 		$(WEB_DIR)/$(WEB_NAME).wasm $(WEB_DIR)/$(WEB_NAME).data \
 		$(WEB_DIR)/$(WEB_NAME).wasm.map $(WEB_DIR)/$(WEB_NAME).js.symbols
+	$(RM) $(WEB_DIR)/$(WEB_NAME_BONUS).html $(WEB_DIR)/$(WEB_NAME_BONUS).js \
+		$(WEB_DIR)/$(WEB_NAME_BONUS).wasm $(WEB_DIR)/$(WEB_NAME_BONUS).data
 	-$(MAKE) -C $(SLX_DIR) webclean
 
-.PHONY: all clean fclean re bonus setup check-tools web web-run webclean
+.PHONY: all clean fclean re bonus setup check-tools web web-bonus web-run webclean

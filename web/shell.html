@@ -128,7 +128,9 @@
 
     function refreshFromFS() {
       var files = [];
-      ['/scenes/mandatory'].forEach(function (dir) {
+      var dirs = window.__minirtSceneDirs || ['/scenes/mandatory'];
+      var current = (typeof Module !== 'undefined' && Module.arguments && Module.arguments[0]) || scene;
+      dirs.forEach(function (dir) {
         try {
           FS.readdir(dir).forEach(function (entry) {
             if (entry === '.' || entry === '..') return;
@@ -137,8 +139,8 @@
         } catch (e) {}
       });
       files.sort();
-      if (files.length > 0) populateSelect(files, scene);
-      else populateSelect(FALLBACK_SCENES, scene);
+      if (files.length > 0) populateSelect(files, current);
+      else populateSelect(FALLBACK_SCENES, current);
     }
 
     populateSelect(FALLBACK_SCENES, scene);

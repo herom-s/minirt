@@ -71,4 +71,8 @@ web/minirt.html
 web/minirt.js
 web/minirt.wasm
 web/minirt.data
+web/minirt_bonus.html
+web/minirt_bonus.js
+web/minirt_bonus.wasm
+web/minirt_bonus.data
 web/obj/
