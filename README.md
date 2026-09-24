@@ -10,6 +10,7 @@ This project introduces the fundamentals of computer graphics, linear algebra, a
 # Table of Contents
 
 - [Description](#description)
+- [Visuals](#visuals)
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Instructions](#instructions)
@@ -40,6 +41,14 @@ The project focuses on:
 - Graphics programming fundamentals
 
 The program reads a `.rt` scene file and renders the corresponding image in a graphical window.
+
+---
+
+# Visuals
+
+`scenes/mandatory/showcase.rt` — spheres, a cylinder and a plane with soft shadows, rendered by miniRT:
+
+![miniRT showcase render](docs/screenshots/showcase.png)
 
 ---
 
