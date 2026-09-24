@@ -65,3 +65,11 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Web build (SampaLX library + emscripten artifacts)
+lib/sampalx/
+web/minirt.html
+web/minirt.js
+web/minirt.wasm
+web/minirt.data
+web/obj/

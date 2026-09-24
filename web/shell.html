@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>miniRT</title>
+  <style>
+    :root {
+      --bg: #101014;
+      --panel: #1a1a21;
+      --border: #2c2c36;
+      --text: #e6e6ea;
+      --muted: #9a9aa5;
+      --accent: #7aa2f7;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 28px 16px 40px;
+      box-sizing: border-box;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+    header h1 .rt {
+      color: var(--accent);
+    }
+    label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    select {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 260px;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    #container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    footer {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>mini<span class="rt">RT</span></h1>
+    <label for="scene-select">Scene</label>
+    <select id="scene-select" title="Scene"></select>
+  </header>
+  <div id="container">
+    <canvas id="canvas" width="1228" height="720"></canvas>
+  </div>
+  <footer><span id="status">rendering&hellip;</span></footer>
+  <script>
+    var DEFAULT_SCENE = '/scenes/mandatory/showcase.rt';
+
+    // Fallback list shown before the virtual FS is ready; refreshed from FS later.
+    var FALLBACK_SCENES = [
+      '/scenes/mandatory/showcase.rt',
+      '/scenes/mandatory/camera_random.rt',
+      '/scenes/mandatory/multi_obj.rt',
+      '/scenes/mandatory/brightness_shadow_complex.rt',
+      '/scenes/mandatory/multi_various.rt',
+      '/scenes/mandatory/test.rt',
+      '/scenes/mandatory/simple.rt',
+      '/scenes/mandatory/basic_cylinder.rt',
+      '/scenes/mandatory/basic_plane.rt',
+      '/scenes/mandatory/basic_sphere.rt',
+      '/scenes/mandatory/multi_intersect.rt'
+    ];
+
+    var params = new URLSearchParams(location.search);
+    var scene = params.get('scene') || DEFAULT_SCENE;
+
+    function addOption(select, value, selected) {
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value.replace(/^\/scenes\//, '');
+      opt.selected = !!selected;
+      select.appendChild(opt);
+    }
+
+    function populateSelect(files, selectedScene) {
+      var sel = document.getElementById('scene-select');
+      sel.innerHTML = '';
+      files.forEach(function (f) { addOption(sel, f, f === selectedScene); });
+    }
+
+    function refreshFromFS() {
+      var files = [];
+      ['/scenes/mandatory'].forEach(function (dir) {
+        try {
+          FS.readdir(dir).forEach(function (entry) {
+            if (entry === '.' || entry === '..') return;
+            if (entry.slice(-3) === '.rt') files.push(dir + '/' + entry);
+          });
+        } catch (e) {}
+      });
+      files.sort();
+      if (files.length > 0) populateSelect(files, scene);
+      else populateSelect(FALLBACK_SCENES, scene);
+    }
+
+    populateSelect(FALLBACK_SCENES, scene);
+
+    var select = document.getElementById('scene-select');
+    select.addEventListener('change', function () {
+      window.location.search = '?scene=' + encodeURIComponent(select.value);
+    });
+
+    var Module = {
+      canvas: document.getElementById('canvas'),
+      arguments: [scene],
+      onRuntimeInitialized: function () {
+        try { refreshFromFS(); } catch (e) {}
+      }
+    };
+
+    // The render blocks the main thread; the first animation frame after main
+    // starts means the frame is on screen and the emscripten loop is running.
+    function watchRender() {
+      if (window.__minirtMainStarted) {
+        window.__minirtReady = true;
+        document.getElementById('status').textContent =
+          'miniRT \u00b7 WebAssembly + WebGL2 \u00b7 Esc quits the render loop';
+      } else {
+        requestAnimationFrame(watchRender);
+      }
+    }
+    requestAnimationFrame(watchRender);
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>

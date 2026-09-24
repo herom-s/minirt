@@ -14,6 +14,7 @@ This project introduces the fundamentals of computer graphics, linear algebra, a
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Instructions](#instructions)
+- [Web Version](#web-version)
 - [Scene Format](#scene-format)
 - [Rendering Pipeline](#rendering-pipeline)
 - [Technical Concepts](#technical-concepts)
@@ -149,6 +150,30 @@ Run the renderer with a scene file:
 ```bash
 ./miniRT scenes/mandatory/simple.rt
 ```
+
+---
+
+# Web Version
+
+miniRT also runs in the browser (WebAssembly + WebGL2) through
+[SampaLX](https://github.com/herom-s/SampaLX) — a drop-in MiniLibX replacement with
+Emscripten support.
+
+Requirements: [Emscripten](https://emscripten.org/) (`emcc`) plus the `gh` CLI to fetch
+SampaLX (falls back to `git` when `gh` is unavailable).
+
+```bash
+make web        # fetches SampaLX, builds libmlx_web.a and web/minirt.html
+make web-run    # serves the page (PORT=8080 by default)
+```
+
+Open `http://localhost:8080/minirt.html` and pick a scene from the dropdown —
+`?scene=/scenes/mandatory/multi_obj.rt` also works. The frame is rendered
+synchronously, so the page stays busy for a moment before the image appears.
+
+![miniRT running in the browser](docs/screenshots/web-version.png)
+
+`make webclean` removes the generated artifacts.
 
 ---
 

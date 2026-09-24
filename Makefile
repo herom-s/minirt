@@ -99,4 +99,57 @@ check-tools:
 setup: check-tools
 	@bash scripts/setup-hooks.sh
 
-.PHONY: all clean fclean re bonus setup check-tools
+# --- Web build (WebAssembly + WebGL2, via SampaLX MiniLibX replacement) ---
+WEB_DIR := web
+WEB_OBJ_DIR := $(WEB_DIR)/obj
+WEB_NAME := minirt
+WEB_OUT := $(WEB_DIR)/$(WEB_NAME).html
+WEB_SHELL := $(WEB_DIR)/shell.html
+WEB_PREJS := $(WEB_DIR)/pre.js
+
+WEB_EMCC := emcc
+WEB_CFLAGS := -Wall -Wextra -O3
+WEB_LDFLAGS := -O3 -sUSE_GLFW=3 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 \
+	-sALLOW_MEMORY_GROWTH=1
+WEB_INCLUDES := -Iinc -Ilib/libft/inc -Ilib/sampalx/includes
+WEB_PRELOAD := --preload-file scenes@/scenes
+WEB_LIB := lib/sampalx/libmlx_web.a
+
+WEB_SRC := $(SRC)
+WEB_FT_SRC := $(wildcard lib/libft/src/*.c)
+WEB_OBJS := $(WEB_SRC:$(SRC_DIR)/%.c=$(WEB_OBJ_DIR)/%.o)
+WEB_FT_OBJS := $(WEB_FT_SRC:lib/libft/src/%.c=$(WEB_OBJ_DIR)/libft/%.o)
+
+PORT ?= 8080
+
+web: $(WEB_OUT)
+	@echo "[web] built $(WEB_OUT) — serve it with: make web-run"
+
+$(WEB_LIB):
+	@bash scripts/fetch-sampalx.sh
+	$(MAKE) -C lib/sampalx web
+
+$(WEB_OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(DUP_DIR)
+	$(WEB_EMCC) $(WEB_CFLAGS) $(WEB_INCLUDES) -c $< -o $@
+
+$(WEB_OBJ_DIR)/libft/%.o: lib/libft/src/%.c
+	$(DUP_DIR)
+	$(WEB_EMCC) $(WEB_CFLAGS) $(WEB_INCLUDES) -c $< -o $@
+
+$(WEB_OUT): $(WEB_OBJS) $(WEB_FT_OBJS) $(WEB_LIB) $(WEB_SHELL) $(WEB_PREJS)
+	$(WEB_EMCC) $(WEB_OBJS) $(WEB_FT_OBJS) $(WEB_CFLAGS) $(WEB_LDFLAGS) \
+		$(WEB_PRELOAD) --shell-file $(WEB_SHELL) --pre-js $(WEB_PREJS) \
+		-Llib/sampalx -lmlx_web -o $(WEB_OUT)
+
+web-run: web
+	@echo "[web] serving web/ at http://localhost:$(PORT)/$(WEB_NAME).html"
+	@python3 -m http.server $(PORT) --directory $(WEB_DIR)
+
+webclean:
+	$(RMDIR) $(WEB_OBJ_DIR)
+	$(RM) $(WEB_DIR)/$(WEB_NAME).html $(WEB_DIR)/$(WEB_NAME).js \
+		$(WEB_DIR)/$(WEB_NAME).wasm $(WEB_DIR)/$(WEB_NAME).data \
+		$(WEB_DIR)/$(WEB_NAME).wasm.map $(WEB_DIR)/$(WEB_NAME).js.symbols
+
+.PHONY: all clean fclean re bonus setup check-tools web web-run webclean
