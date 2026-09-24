@@ -8,12 +8,12 @@ LIBFT_DIR := lib/libft
 CFLAGS += -g2 -O0
 
 LIBFT_PATH := $(ROOT_DIR)/$(LIBFT_DIR)
-MLX_PATH := $(ROOT_DIR)/lib/minilibx-linux
+MLX_PATH := $(ROOT_DIR)/lib/sampalx
 SRC_PATH := $(ROOT_DIR)/$(SRC_DIR)
 SRC_BONUS_PATH := $(ROOT_DIR)/$(SRC_BONUS_DIR)
 LIBFT_LIB := $(LIBFT_PATH)/libft.a
 MLX_LIB := $(MLX_PATH)/libmlx.a
-INCLUDES = -I$(ROOT_DIR)/$(INC_MINIRT) -I$(LIBFT_PATH)/inc -I$(MLX_PATH)
+INCLUDES = -I$(ROOT_DIR)/$(INC_MINIRT) -I$(LIBFT_PATH)/inc -I$(MLX_PATH)/includes
 
 TEST_OBJ_DIR = obj
 TEST_OBJ_BONUS_DIR = obj_bonus
@@ -59,7 +59,7 @@ PROJECT_OBJ_BONUS = $(SRC_BONUS:%.c=$(TEST_OBJ_BONUS_DIR)/project/%.o)
 PROJECT_OBJ_BONUS := $(filter-out $(TEST_OBJ_BONUS_DIR)/project/main_bonus.o, $(PROJECT_OBJ_BONUS))
 
 TEST_LIBS = -L$(CMOCKA_BUILD)/src -lcmocka -L$(LIBFT_PATH) -lft \
-			-L$(MLX_PATH) -lmlx -lm -lXext -lX11
+			-L$(MLX_PATH) -lmlx -lglfw -lGL -lm
 
 GREEN = \033[0;32m
 YELLOW = \033[0;33m

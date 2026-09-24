@@ -1,10 +1,10 @@
 NAME = miniRT
 NAME_BONUS = miniRT_bonus
 
-INC_DIR = inc lib/libft/inc lib/minilibx-linux/
+INC_DIR = inc lib/libft/inc lib/sampalx/includes
 SRC_DIR = src
 OBJ_DIR = obj
-INC_BONUS_DIR = inc_bonus lib/libft/inc lib/minilibx-linux/
+INC_BONUS_DIR = inc_bonus lib/libft/inc lib/sampalx/includes
 SRC_BONUS_DIR = src_bonus
 OBJ_BONUS_DIR = obj_bonus
 

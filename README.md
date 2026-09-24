@@ -85,8 +85,8 @@ miniRT/
 ├── include/        # Header files
 ├── src/            # Source files
 ├── scenes/         # Example .rt scenes
-├── libft/          # Custom utility library
-├── minilibx/       # MiniLibX graphics library
+├── lib/libft/      # Custom utility library
+├── lib/sampalx/    # SampaLX graphics library (OpenGL/GLFW + WebGL)
 ├── Makefile
 └── README.md
 ````
@@ -103,15 +103,15 @@ Install dependencies:
 
 ```bash
 sudo apt update
-sudo apt install gcc make xorg libxext-dev libbsd-dev
+sudo apt install build-essential libglfw3-dev libgl1-mesa-dev
 ```
 
 ### macOS
 
-Install XQuartz:
+Install GLFW:
 
 ```bash
-brew install --cask xquartz
+brew install glfw
 ```
 
 ---
@@ -159,11 +159,12 @@ miniRT also runs in the browser (WebAssembly + WebGL2) through
 [SampaLX](https://github.com/herom-s/SampaLX) — a drop-in MiniLibX replacement with
 Emscripten support.
 
-Requirements: [Emscripten](https://emscripten.org/) (`emcc`) plus the `gh` CLI to fetch
-SampaLX (falls back to `git` when `gh` is unavailable).
+Requirements: [Emscripten](https://emscripten.org/) (`emcc`). SampaLX ships as a git
+submodule (`lib/sampalx`) — clone with `--recursive`, or run
+`git submodule update --init --recursive` before building.
 
 ```bash
-make web        # fetches SampaLX, builds libmlx_web.a and web/minirt.html
+make web        # builds libmlx_web.a and web/minirt.html
 make web-run    # serves the page (PORT=8080 by default)
 ```
 

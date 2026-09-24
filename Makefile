@@ -7,8 +7,15 @@ OBJS := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 OBJS_BONUS := $(SRC_BONUS:$(SRC_BONUS_DIR)/%.c=$(OBJ_BONUS_DIR)/%.o)
 
 # Libs
-LIBS := ft mlx m Xext X11
-LIBS_TARGET := lib/libft/libft.a lib/minilibx-linux/libmlx.a
+LIBS := ft mlx glfw GL m
+LIBS_TARGET := lib/libft/libft.a lib/sampalx/libmlx.a
+
+# SampaLX (drop-in MiniLibX replacement on OpenGL/GLFW) lives in the
+# lib/sampalx submodule — initialize it with `git clone --recursive`
+# or `git submodule update --init --recursive`.
+SLX_DIR := lib/sampalx
+SLX_LIB := $(SLX_DIR)/libmlx.a
+SLX_WEB_LIB := $(SLX_DIR)/libmlx_web.a
 
 # Flags
 CC := cc
@@ -44,6 +51,14 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(LIBS_TARGET):
 	$(MAKE) -C $(@D)
 
+# Clear error when the SampaLX submodule was not initialized.
+$(SLX_DIR)/Makefile:
+	@echo "[error] SampaLX submodule not initialized."
+	@echo "        Run: git submodule update --init --recursive"
+	@exit 1
+
+$(SLX_LIB): $(SLX_DIR)/Makefile
+
 bonus: $(NAME_BONUS)
 
 $(NAME_BONUS): $(OBJS_BONUS) $(LIBS_TARGET)
@@ -68,7 +83,7 @@ clean:
 
 fclean: clean
 	make -C lib/libft/ fclean
-	$(RM) lib/minilibx-linux/libmlx.a
+	-$(MAKE) -C $(SLX_DIR) fclean
 	$(RM) $(NAME) $(NAME_BONUS)
 
 test:
@@ -111,9 +126,9 @@ WEB_EMCC := emcc
 WEB_CFLAGS := -Wall -Wextra -O3
 WEB_LDFLAGS := -O3 -sUSE_GLFW=3 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 \
 	-sALLOW_MEMORY_GROWTH=1
-WEB_INCLUDES := -Iinc -Ilib/libft/inc -Ilib/sampalx/includes
+WEB_INCLUDES := -Iinc -Ilib/libft/inc -I$(SLX_DIR)/includes
 WEB_PRELOAD := --preload-file scenes@/scenes
-WEB_LIB := lib/sampalx/libmlx_web.a
+WEB_LIB := $(SLX_WEB_LIB)
 
 WEB_SRC := $(SRC)
 WEB_FT_SRC := $(wildcard lib/libft/src/*.c)
@@ -125,9 +140,8 @@ PORT ?= 8080
 web: $(WEB_OUT)
 	@echo "[web] built $(WEB_OUT) — serve it with: make web-run"
 
-$(WEB_LIB):
-	@bash scripts/fetch-sampalx.sh
-	$(MAKE) -C lib/sampalx web
+$(WEB_LIB): $(SLX_DIR)/Makefile
+	$(MAKE) -C $(SLX_DIR) web
 
 $(WEB_OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(DUP_DIR)
@@ -137,10 +151,14 @@ $(WEB_OBJ_DIR)/libft/%.o: lib/libft/src/%.c
 	$(DUP_DIR)
 	$(WEB_EMCC) $(WEB_CFLAGS) $(WEB_INCLUDES) -c $< -o $@
 
+# Web objects include SampaLX headers, so libmlx_web.a must be built
+# before compilation starts (also keeps `make -j` correct).
+$(WEB_OBJS) $(WEB_FT_OBJS): $(WEB_LIB)
+
 $(WEB_OUT): $(WEB_OBJS) $(WEB_FT_OBJS) $(WEB_LIB) $(WEB_SHELL) $(WEB_PREJS)
 	$(WEB_EMCC) $(WEB_OBJS) $(WEB_FT_OBJS) $(WEB_CFLAGS) $(WEB_LDFLAGS) \
 		$(WEB_PRELOAD) --shell-file $(WEB_SHELL) --pre-js $(WEB_PREJS) \
-		-Llib/sampalx -lmlx_web -o $(WEB_OUT)
+		-L$(SLX_DIR) -lmlx_web -o $(WEB_OUT)
 
 web-run: web
 	@echo "[web] serving web/ at http://localhost:$(PORT)/$(WEB_NAME).html"
@@ -151,5 +169,6 @@ webclean:
 	$(RM) $(WEB_DIR)/$(WEB_NAME).html $(WEB_DIR)/$(WEB_NAME).js \
 		$(WEB_DIR)/$(WEB_NAME).wasm $(WEB_DIR)/$(WEB_NAME).data \
 		$(WEB_DIR)/$(WEB_NAME).wasm.map $(WEB_DIR)/$(WEB_NAME).js.symbols
+	-$(MAKE) -C $(SLX_DIR) webclean
 
 .PHONY: all clean fclean re bonus setup check-tools web web-run webclean
