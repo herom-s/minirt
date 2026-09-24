@@ -34,6 +34,14 @@
       gap: 18px;
       margin-bottom: 18px;
     }
+    header a.home {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    header a.home:hover {
+      color: var(--text);
+    }
     header h1 {
       margin: 0;
       font-size: 19px;
@@ -83,6 +91,7 @@
 </head>
 <body>
   <header>
+    <a class="home" href="../../">&larr; Portfolio</a>
     <h1>mini<span class="rt">RT</span></h1>
     <label for="scene-select">Scene</label>
     <select id="scene-select" title="Scene"></select>
